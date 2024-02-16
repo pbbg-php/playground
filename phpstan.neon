@@ -1,0 +1,10 @@
+includes:
+  - phpstan-baseline.neon
+
+parameters:
+  level: max
+  paths:
+    - src
+  ignoreErrors:
+    - message: '#^Method Playground\\Components\\Components\:\:attach\(\) should return CClass of Playground\\Components\\Contracts\\Component but returns \(CClass of Playground\\Components\\Contracts\\Component\)\|Playground\\Entities\\Contracts\\EntityAware\<Playground\\Entities\\Contracts\\Entity\>\.$#'
+      path: src/Components/Components.php
