@@ -36,12 +36,12 @@ interface Entity
      *
      * @template CClass of \Playground\Components\Contracts\Component
      *
-     * @param string                       $component
+     * @param class-string<\Playground\Components\Contracts\Component> $component
      *
      * @return \Playground\Components\Contracts\Component
      *
-     * @psalm-param class-string<CClass>   $component
-     * @phpstan-param class-string<CClass> $component
+     * @psalm-param class-string<CClass>                               $component
+     * @phpstan-param class-string<CClass>                             $component
      *
      * @psalm-return CClass
      * @phpstan-return CClass
