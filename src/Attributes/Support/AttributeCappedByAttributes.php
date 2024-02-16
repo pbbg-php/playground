@@ -4,8 +4,8 @@ declare(strict_types=1);
 namespace Playground\Attributes\Support;
 
 use Override;
+use Playground\Attributes\Attributes;
 use Playground\Attributes\Contracts\AttributeAware;
-use Playground\Attributes\Contracts\AttributeCollection;
 use Playground\Attributes\Contracts\CappedAttribute;
 use Playground\Entities\Concerns\RequiresAnEntity;
 use Playground\Entities\Contracts\EntityAware;
@@ -15,6 +15,7 @@ use Playground\Entities\Contracts\EntityAware;
  */
 abstract class AttributeCappedByAttributes implements CappedAttribute, AttributeAware, EntityAware
 {
+    /** @use \Playground\Entities\Concerns\RequiresAnEntity<\Playground\Entities\Contracts\Entity> */
     use RequiresAnEntity;
 
     /**
@@ -31,7 +32,7 @@ abstract class AttributeCappedByAttributes implements CappedAttribute, Attribute
     public function minValue(): ?float
     {
         return $this->getEntity()
-                    ->as(AttributeCollection::class)
+                    ->as(Attributes::class)
                     ->value($this->minAttribute());
     }
 
@@ -49,7 +50,7 @@ abstract class AttributeCappedByAttributes implements CappedAttribute, Attribute
     public function maxValue(): ?float
     {
         return $this->getEntity()
-                    ->as(AttributeCollection::class)
+                    ->as(Attributes::class)
                     ->value($this->maxAttribute());
     }
 }
