@@ -4,15 +4,11 @@ declare(strict_types=1);
 namespace Playground\Attributes\Exceptions;
 
 use Playground\Components\Exceptions\ComponentException;
-use Playground\Context\Contracts\Context;
+
 use Playground\Entities\Contracts\Entity;
 use Throwable;
 
 /**
- * Attribute Modifier Not Found Exception
- *
- * Exception thrown when a specific attribute was unable to be found.
- *
  * @package Attributes
  */
 final class AttributeModifierNotFoundException extends ComponentException

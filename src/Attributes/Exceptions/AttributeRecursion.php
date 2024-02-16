@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Playground\Attributes\Exceptions;
 
-use Playground\Context\Contracts\Context;
+
 use Playground\Entities\Concerns\ExceptionIsAwareOfEntity;
 use Playground\Entities\Contracts\Entity;
 

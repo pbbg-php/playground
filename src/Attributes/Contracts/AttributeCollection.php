@@ -26,14 +26,14 @@ interface AttributeCollection extends IteratorAggregate
     /**
      * Add an attribute to the collection
      *
-     * @param \Playground\Attributes\Contracts\Attribute $attribute
-     * @param float                                      $value
+     * @param string $attribute
+     * @param float  $value
      *
      * @return static
      *
      * @throws \Playground\Attributes\Exceptions\AttributeAlreadyExistsException If the attribute is already present
      */
-    public function add(Attribute $attribute, float $value): static;
+    public function add(string $attribute, float $value): static;
 
     /**
      * Get an attribute from the collection
@@ -58,8 +58,8 @@ interface AttributeCollection extends IteratorAggregate
     /**
      * Link an attribute with other attributes
      *
-     * @param string $attribute
-     * @param array<string>  $attributes
+     * @param string        $attribute
+     * @param array<string> $attributes
      *
      * @return static
      */
@@ -82,8 +82,8 @@ interface AttributeCollection extends IteratorAggregate
     /**
      * Add a modifier to an attribute
      *
-     * @param string                                             $attribute
-     * @param \Playground\Attributes\Contracts\AttributeModifier $modifier
+     * @param string $attribute
+     * @param string $modifier
      *
      * @return float
      *
@@ -91,7 +91,7 @@ interface AttributeCollection extends IteratorAggregate
      * @throws \Playground\Attributes\Exceptions\AttributeDoesNotSupportModifiersException If the attribute does not support modifiers
      * @throws \Playground\Attributes\Exceptions\AttributeModifierAlreadyExistsException If the modifier is already present for the attribute
      */
-    public function modify(string $attribute, AttributeModifier $modifier): float;
+    public function modify(string $attribute, string $modifier): float;
 
     /**
      * Remove an attribute from the collection
