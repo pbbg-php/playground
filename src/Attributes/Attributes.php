@@ -9,6 +9,8 @@ use Override;
 use Playground\Attributes\Contracts\Attribute;
 use Playground\Attributes\Contracts\AttributeAware;
 use Playground\Attributes\Contracts\AttributeCollection;
+use Playground\Attributes\Contracts\AttributeModifierProvider;
+use Playground\Attributes\Contracts\AttributeProvider;
 use Playground\Attributes\Contracts\CappedAttribute;
 use Playground\Attributes\Contracts\ModifiableAttribute;
 use Playground\Attributes\Events\AttributeAdded;
@@ -89,6 +91,20 @@ final class Attributes implements AttributeCollection, EntityAware, Component
      */
     private array $recalculating = [];
 
+    /**
+     * Attribute providers
+     *
+     * @var list<\Playground\Attributes\Contracts\AttributeProvider>|\Playground\Attributes\Contracts\AttributeProvider[]
+     */
+    private array $attributeProviders = [];
+
+    /**
+     * Attribute modifier providers
+     *
+     * @var list<\Playground\Attributes\Contracts\AttributeModifierProvider>|\Playground\Attributes\Contracts\AttributeModifierProvider[]
+     */
+    private array $modifierProviders = [];
+
     public function __construct(AttributeRegistry $registry)
     {
         $this->registry = $registry;
@@ -127,6 +143,54 @@ final class Attributes implements AttributeCollection, EntityAware, Component
     public function attributes(): array
     {
         return array_values($this->attributes);
+    }
+
+    /**
+     * @param \Playground\Attributes\Contracts\AttributeProvider|\Playground\Attributes\Contracts\AttributeModifierProvider $provider
+     *
+     * @return static
+     *
+     * @throws \Playground\Entities\Exceptions\EntityNotFound
+     */
+    #[Override]
+    public function deregister(AttributeProvider|AttributeModifierProvider $provider): static
+    {
+        // Handle attribute modifiers first, in case the provider modifies
+        // attributes it also provides
+        if ($provider instanceof AttributeModifierProvider) {
+            $index = array_search($provider, $this->modifierProviders, true);
+
+            if ($index) {
+                unset($this->modifierProviders[$index]);
+                $modifiers = $provider->getProvidedAttributeModifiers();
+
+                foreach ($modifiers as $attribute => $modifier) {
+                    // Some attribute modifier providers will be providing
+                    // negative modifiers, and it's entirely possible that the
+                    // negative modifier was cleansed in some manner, so we'll
+                    // silence exceptions for modifiers that don't currently exist.
+                    try {
+                        $this->unmodify($attribute, $modifier);
+                    } catch (AttributeModifierNotFoundException) {
+                    }
+                }
+            }
+        }
+
+        if ($provider instanceof AttributeProvider) {
+            $index = array_search($provider, $this->attributeProviders, true);
+
+            if ($index) {
+                unset($this->attributeProviders[$index]);
+                $attributes = $provider->getProvidedAttributes();
+
+                foreach ($attributes as $attribute => $value) {
+                    $this->remove($attribute);
+                }
+            }
+        }
+
+        return $this;
     }
 
     /**
@@ -350,6 +414,37 @@ final class Attributes implements AttributeCollection, EntityAware, Component
         $this->set($attribute, $value);
 
         array_pop($this->recalculating);
+    }
+
+    /**
+     * @param \Playground\Attributes\Contracts\AttributeProvider|\Playground\Attributes\Contracts\AttributeModifierProvider $provider
+     *
+     * @return static
+     *
+     * @throws \Playground\Entities\Exceptions\EntityNotFound
+     */
+    #[Override]
+    public function register(AttributeProvider|AttributeModifierProvider $provider): static
+    {
+        if ($provider instanceof AttributeProvider) {
+            $this->attributeProviders[] = $provider;
+            $attributes                 = $provider->getProvidedAttributes();
+
+            foreach ($attributes as $attribute => $value) {
+                $this->add($attribute, $value);
+            }
+        }
+
+        if ($provider instanceof AttributeModifierProvider) {
+            $this->modifierProviders[] = $provider;
+            $modifiers                 = $provider->getProvidedAttributeModifiers();
+
+            foreach ($modifiers as $attribute => $modifier) {
+                $this->modify($attribute, $modifier);
+            }
+        }
+
+        return $this;
     }
 
     /**

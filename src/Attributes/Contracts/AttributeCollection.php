@@ -24,6 +24,15 @@ interface AttributeCollection extends IteratorAggregate
     public function attributes(): array;
 
     /**
+     * Deregister an attribute or attribute modifier provider
+     *
+     * @param \Playground\Attributes\Contracts\AttributeProvider|\Playground\Attributes\Contracts\AttributeModifierProvider $provider
+     *
+     * @return static
+     */
+    public function deregister(AttributeProvider|AttributeModifierProvider $provider): static;
+
+    /**
      * Add an attribute to the collection
      *
      * @param string $attribute
@@ -92,6 +101,15 @@ interface AttributeCollection extends IteratorAggregate
      * @throws \Playground\Attributes\Exceptions\AttributeModifierAlreadyExistsException If the modifier is already present for the attribute
      */
     public function modify(string $attribute, string $modifier): float;
+
+    /**
+     * Register an attribute or attribute modifier provider
+     *
+     * @param \Playground\Attributes\Contracts\AttributeProvider|\Playground\Attributes\Contracts\AttributeModifierProvider $provider
+     *
+     * @return static
+     */
+    public function register(AttributeProvider|AttributeModifierProvider $provider): static;
 
     /**
      * Remove an attribute from the collection
