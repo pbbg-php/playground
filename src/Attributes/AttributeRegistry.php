@@ -4,75 +4,34 @@ declare(strict_types=1);
 
 namespace Playground\Attributes;
 
+use Override;
 use Playground\Attributes\Contracts\Attribute;
-use Playground\Attributes\Contracts\AttributeModifier;
-use Playground\Attributes\Exceptions\AttributeAlreadyRegisteredException;
-use Playground\Attributes\Exceptions\AttributeModifierAlreadyRegisteredException;
-use Playground\Attributes\Exceptions\AttributeModifierNotRegisteredException;
-use Playground\Attributes\Exceptions\AttributeNotRegisteredException;
+use Playground\Utility\BaseRegistry;
 
 /**
- * Attribute Manager
+ * Attribute Registry
+ *
+ * @extends \Playground\Utility\BaseRegistry<\Playground\Attributes\Contracts\Attribute>
  */
-final class AttributeRegistry
+final class AttributeRegistry extends BaseRegistry
 {
     /**
-     * @var array<string, \Playground\Attributes\Contracts\Attribute>
+     * @param object                                             $object
+     *
+     * @return string
+     *
+     * @psalm-param \Playground\Attributes\Contracts\Attribute   $object
+     * @phpstan-param \Playground\Attributes\Contracts\Attribute $object
      */
-    private array $attributes = [];
-
-    /**
-     * @var array<string, \Playground\Attributes\Contracts\AttributeModifier>
-     */
-    private array $attributeModifiers = [];
-
-    public function registeredAttribute(string $attribute): bool
+    #[Override]
+    protected function getName(object $object): string
     {
-        return isset($this->attributes[$attribute]);
+        return $object->name();
     }
 
-    public function registerAttribute(Attribute $attribute): static
+    #[Override]
+    public function for(): string
     {
-        if ($this->registeredAttribute($attribute->name())) {
-            throw AttributeAlreadyRegisteredException::make($attribute);
-        }
-
-        $this->attributes[$attribute->name()] = $attribute;
-
-        return $this;
-    }
-
-    public function getAttribute(string $attribute): Attribute
-    {
-        if (! $this->registeredAttribute($attribute)) {
-            throw AttributeNotRegisteredException::make($attribute);
-        }
-
-        return $this->attributes[$attribute];
-    }
-
-    public function registeredModifier(string $modifier): bool
-    {
-        return isset($this->attributeModifiers[$modifier]);
-    }
-
-    public function registerModifier(AttributeModifier $modifier): static
-    {
-        if ($this->registeredModifier($modifier->name())) {
-            throw AttributeModifierAlreadyRegisteredException::make($modifier);
-        }
-
-        $this->attributeModifiers[$modifier->name()] = $modifier;
-
-        return $this;
-    }
-
-    public function getModifier(string $modifier): AttributeModifier
-    {
-        if (! $this->registeredModifier($modifier)) {
-            throw AttributeModifierNotRegisteredException::make($modifier);
-        }
-
-        return $this->attributeModifiers[$modifier];
+        return Attribute::class;
     }
 }
