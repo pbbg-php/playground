@@ -155,7 +155,7 @@ final class Attributes implements AttributeCollection, EntityAware, Component
         if ($provider instanceof AttributeModifierProvider) {
             $index = array_search($provider, $this->modifierProviders, true);
 
-            if ($index) {
+            if ($index !== false) {
                 unset($this->modifierProviders[$index]);
                 $modifiers = $provider->getProvidedAttributeModifiers();
 
@@ -175,11 +175,11 @@ final class Attributes implements AttributeCollection, EntityAware, Component
         if ($provider instanceof AttributeProvider) {
             $index = array_search($provider, $this->attributeProviders, true);
 
-            if ($index) {
+            if ($index !== false) {
                 unset($this->attributeProviders[$index]);
                 $attributes = $provider->getProvidedAttributes();
 
-                foreach ($attributes as $attribute => $value) {
+                foreach (array_keys($attributes) as $attribute) {
                     $this->remove($attribute);
                 }
             }
@@ -227,6 +227,13 @@ final class Attributes implements AttributeCollection, EntityAware, Component
             $this->modifiers[$attribute] = [];
         }
 
+        /**
+         * Unfortunately, we need this here, again, because PhpStan is wrong and
+         * doing eccentric ludicrous stuff.
+         *
+         * @psalm-suppress UnnecessaryVarAnnotation
+         * @var \Playground\Attributes\Contracts\Attribute $realAttribute
+         */
         $this->fireEvent(new AttributeAdded($realAttribute));
 
         return $this;
