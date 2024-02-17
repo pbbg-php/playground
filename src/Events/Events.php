@@ -6,7 +6,6 @@ namespace Playground\Events;
 
 use Closure;
 use Override;
-use Playground\Components\Contracts\Component;
 use Playground\Entities\Concerns\RequiresAnEntity;
 use Playground\Entities\Contracts\EntityAware;
 use Playground\Events\Contracts\CancellableEvent;
@@ -17,7 +16,7 @@ use Playground\Events\Contracts\EventBus;
  *
  * @implements \Playground\Entities\Contracts\EntityAware<\Playground\Entities\Contracts\Entity>
  */
-final class Events implements EventBus, Component, EntityAware
+final class Events implements EventBus, EntityAware
 {
     /** @use \Playground\Entities\Concerns\RequiresAnEntity<\Playground\Entities\Contracts\Entity> */
     use RequiresAnEntity;

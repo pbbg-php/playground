@@ -27,7 +27,6 @@ use Playground\Attributes\Exceptions\AttributeRecursion;
 use Playground\Components\Contracts\Component;
 use Playground\Entities\Concerns\RequiresAnEntity;
 use Playground\Entities\Contracts\EntityAware;
-use Playground\Events\Events;
 use Traversable;
 
 /**
@@ -129,11 +128,7 @@ final class Attributes implements AttributeCollection, EntityAware, Component
      */
     private function fireEvent(object $event): object
     {
-        if ($this->getEntity()->components()->has(Events::class)) {
-            $this->getEntity()->as(Events::class)->dispatch($event);
-        }
-
-        return $event;
+        return $this->getEntity()->events()->dispatch($event);
     }
 
     /**

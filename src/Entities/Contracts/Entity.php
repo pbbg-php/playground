@@ -4,6 +4,7 @@ namespace Playground\Entities\Contracts;
 
 use Playground\Components\Contracts\Component;
 use Playground\Components\Contracts\ComponentCollection;
+use Playground\Events\Contracts\EventBus;
 
 /**
  * @package Entities
@@ -25,11 +26,18 @@ interface Entity
     public function identity(): ?string;
 
     /**
-     * Get the entities components
+     * Get the entity's components
      *
      * @return \Playground\Components\Contracts\ComponentCollection
      */
     public function components(): ComponentCollection;
+
+    /**
+     * Get the entity's event bus
+     *
+     * @return \Playground\Events\Contracts\EventBus
+     */
+    public function events(): EventBus;
 
     /**
      * Act as a component
