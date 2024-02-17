@@ -15,7 +15,7 @@ interface AttributeAware
     /**
      * Attributes that this attribute is aware of
      *
-     * @return array<string>
+     * @return array<\Playground\Attributes\Contracts\Attribute>
      */
     public function awareOf(): array;
 }

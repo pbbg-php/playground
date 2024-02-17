@@ -5,6 +5,7 @@ namespace Playground\Attributes\Support;
 
 use Override;
 use Playground\Attributes\Attributes;
+use Playground\Attributes\Contracts\Attribute;
 use Playground\Attributes\Contracts\AttributeAware;
 use Playground\Attributes\Contracts\CappedAttribute;
 use Playground\Entities\Concerns\RequiresAnEntity;
@@ -19,9 +20,9 @@ abstract class AttributeCappedByAttributes implements CappedAttribute, Attribute
     use RequiresAnEntity;
 
     /**
-     * @return string
+     * @return \Playground\Attributes\Contracts\Attribute
      */
-    abstract protected function minAttribute(): string;
+    abstract protected function minAttribute(): Attribute;
 
     /**
      * @return float|null
@@ -37,9 +38,9 @@ abstract class AttributeCappedByAttributes implements CappedAttribute, Attribute
     }
 
     /**
-     * @return string
+     * @return \Playground\Attributes\Contracts\Attribute
      */
-    abstract protected function maxAttribute(): string;
+    abstract protected function maxAttribute(): Attribute;
 
     /**
      * @return float|null

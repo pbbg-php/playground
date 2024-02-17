@@ -19,7 +19,7 @@ interface AttributeModifierProvider
     /**
      * Get the provided attribute modifiers
      *
-     * @return array<string, string>
+     * @return list<array{\Playground\Attributes\Contracts\Attribute, \Playground\Attributes\Contracts\AttributeModifier}>
      */
     public function getProvidedAttributeModifiers(): array;
 }

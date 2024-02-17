@@ -34,7 +34,7 @@ final class AttributeRegistry
     public function registerAttribute(Attribute $attribute): static
     {
         if ($this->registeredAttribute($attribute->name())) {
-            throw AttributeAlreadyRegisteredException::make($attribute->name());
+            throw AttributeAlreadyRegisteredException::make($attribute);
         }
 
         $this->attributes[$attribute->name()] = $attribute;
@@ -59,7 +59,7 @@ final class AttributeRegistry
     public function registerModifier(AttributeModifier $modifier): static
     {
         if ($this->registeredModifier($modifier->name())) {
-            throw AttributeModifierAlreadyRegisteredException::make($modifier->name());
+            throw AttributeModifierAlreadyRegisteredException::make($modifier);
         }
 
         $this->attributeModifiers[$modifier->name()] = $modifier;

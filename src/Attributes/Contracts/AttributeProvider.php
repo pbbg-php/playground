@@ -19,7 +19,7 @@ interface AttributeProvider
     /**
      * Get the provided attributes
      *
-     * @return array<string, float>
+     * @return list<array{\Playground\Attributes\Contracts\Attribute, int}>
      */
     public function getProvidedAttributes(): array;
 }

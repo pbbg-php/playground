@@ -35,50 +35,39 @@ interface AttributeCollection extends IteratorAggregate
     /**
      * Add an attribute to the collection
      *
-     * @param string $attribute
-     * @param float  $value
+     * @param \Playground\Attributes\Contracts\Attribute $attribute
+     * @param float                                      $value
      *
      * @return static
      *
      * @throws \Playground\Attributes\Exceptions\AttributeAlreadyExistsException If the attribute is already present
      */
-    public function add(string $attribute, float $value): static;
-
-    /**
-     * Get an attribute from the collection
-     *
-     * @param string $attribute
-     *
-     * @return \Playground\Attributes\Contracts\Attribute
-     *
-     * @throws \Playground\Attributes\Exceptions\AttributeNotFoundException If the attribute was not found
-     */
-    public function get(string $attribute): Attribute;
+    public function add(Attribute $attribute, float $value): static;
 
     /**
      * Check if the collection contains an attribute
      *
-     * @param string $attribute
+     * @param \Playground\Attributes\Contracts\Attribute $attribute
      *
      * @return bool
      */
-    public function has(string $attribute): bool;
+    public function has(Attribute $attribute): bool;
 
     /**
      * Link an attribute with other attributes
      *
-     * @param string        $attribute
-     * @param array<string> $attributes
+     * @param \Playground\Attributes\Contracts\Attribute        $attribute
+     * @param array<\Playground\Attributes\Contracts\Attribute> $attributes
      *
      * @return static
      */
-    public function link(string $attribute, array $attributes): static;
+    public function link(Attribute $attribute, array $attributes): static;
 
     /**
      * Check if an attribute has a modifier
      *
-     * @param string $attribute
-     * @param string $modifier
+     * @param \Playground\Attributes\Contracts\Attribute         $attribute
+     * @param \Playground\Attributes\Contracts\AttributeModifier $modifier
      *
      * @return bool
      *
@@ -86,13 +75,13 @@ interface AttributeCollection extends IteratorAggregate
      * @throws \Playground\Attributes\Exceptions\AttributeDoesNotSupportModifiersException If the attribute does not support modifiers
      * @throws \Playground\Attributes\Exceptions\AttributeModifierNotFoundException If the modifier wasn't found for the attribute
      */
-    public function modified(string $attribute, string $modifier): bool;
+    public function modified(Attribute $attribute, AttributeModifier $modifier): bool;
 
     /**
      * Add a modifier to an attribute
      *
-     * @param string $attribute
-     * @param string $modifier
+     * @param \Playground\Attributes\Contracts\Attribute         $attribute
+     * @param \Playground\Attributes\Contracts\AttributeModifier $modifier
      *
      * @return float
      *
@@ -100,7 +89,7 @@ interface AttributeCollection extends IteratorAggregate
      * @throws \Playground\Attributes\Exceptions\AttributeDoesNotSupportModifiersException If the attribute does not support modifiers
      * @throws \Playground\Attributes\Exceptions\AttributeModifierAlreadyExistsException If the modifier is already present for the attribute
      */
-    public function modify(string $attribute, string $modifier): float;
+    public function modify(Attribute $attribute, AttributeModifier $modifier): float;
 
     /**
      * Register an attribute or attribute modifier provider
@@ -114,43 +103,43 @@ interface AttributeCollection extends IteratorAggregate
     /**
      * Remove an attribute from the collection
      *
-     * @param string $attribute
+     * @param \Playground\Attributes\Contracts\Attribute $attribute
      *
      * @return \Playground\Attributes\Contracts\Attribute
      *
      * @throws \Playground\Attributes\Exceptions\AttributeNotFoundException If the attribute was not found
      */
-    public function remove(string $attribute): Attribute;
+    public function remove(Attribute $attribute): Attribute;
 
     /**
      * Remove all modifiers from an attribute
      *
-     * @param string $attribute
+     * @param \Playground\Attributes\Contracts\Attribute $attribute
      *
      * @return float
      *
      * @throws \Playground\Attributes\Exceptions\AttributeNotFoundException If the attribute was not found
      * @throws \Playground\Attributes\Exceptions\AttributeDoesNotSupportModifiersException If the attribute does not support modifiers
      */
-    public function reset(string $attribute): float;
+    public function reset(Attribute $attribute): float;
 
     /**
      * Set the base value of an attribute
      *
-     * @param string $attribute
-     * @param float  $value
+     * @param \Playground\Attributes\Contracts\Attribute $attribute
+     * @param float                                      $value
      *
      * @return static
      *
      * @throws \Playground\Attributes\Exceptions\AttributeNotFoundException If the attribute was not found
      */
-    public function set(string $attribute, float $value): static;
+    public function set(Attribute $attribute, float $value): static;
 
     /**
      * Remove a modifier from an attribute
      *
-     * @param string $attribute
-     * @param string $modifier
+     * @param \Playground\Attributes\Contracts\Attribute         $attribute
+     * @param \Playground\Attributes\Contracts\AttributeModifier $modifier
      *
      * @return float
      *
@@ -158,18 +147,18 @@ interface AttributeCollection extends IteratorAggregate
      * @throws \Playground\Attributes\Exceptions\AttributeDoesNotSupportModifiersException If the attribute does not support modifiers
      * @throws \Playground\Attributes\Exceptions\AttributeModifierNotFoundException If the modifier wasn't found for the attribute
      */
-    public function unmodify(string $attribute, string $modifier): float;
+    public function unmodify(Attribute $attribute, AttributeModifier $modifier): float;
 
     /**
      * Get the value of an attribute
      *
-     * @param string $attribute
+     * @param \Playground\Attributes\Contracts\Attribute $attribute
      *
      * @return float
      *
      * @throws \Playground\Attributes\Exceptions\AttributeNotFoundException If the attribute was not found
      */
-    public function value(string $attribute): float;
+    public function value(Attribute $attribute): float;
 
     /**
      * Get all attribute values

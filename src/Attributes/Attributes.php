@@ -9,6 +9,7 @@ use Override;
 use Playground\Attributes\Contracts\Attribute;
 use Playground\Attributes\Contracts\AttributeAware;
 use Playground\Attributes\Contracts\AttributeCollection;
+use Playground\Attributes\Contracts\AttributeModifier;
 use Playground\Attributes\Contracts\AttributeModifierProvider;
 use Playground\Attributes\Contracts\AttributeProvider;
 use Playground\Attributes\Contracts\CappedAttribute;
@@ -42,13 +43,6 @@ final class Attributes implements AttributeCollection, EntityAware, Component
     use RequiresAnEntity;
 
     /**
-     * The attribute registry
-     *
-     * @var \Playground\Attributes\AttributeRegistry
-     */
-    private AttributeRegistry $registry;
-
-    /**
      * The attributes
      *
      * @var array<string, \Playground\Attributes\Contracts\Attribute>
@@ -79,7 +73,7 @@ final class Attributes implements AttributeCollection, EntityAware, Component
     /**
      * Linked attributes
      *
-     * @var array<string, array<string>>
+     * @var array<string, array<\Playground\Attributes\Contracts\Attribute>>
      */
     private array $linked = [];
 
@@ -103,11 +97,6 @@ final class Attributes implements AttributeCollection, EntityAware, Component
      * @var list<\Playground\Attributes\Contracts\AttributeModifierProvider>|\Playground\Attributes\Contracts\AttributeModifierProvider[]
      */
     private array $modifierProviders = [];
-
-    public function __construct(AttributeRegistry $registry)
-    {
-        $this->registry = $registry;
-    }
 
     /**
      * Fire an event on the parent entity
@@ -159,12 +148,14 @@ final class Attributes implements AttributeCollection, EntityAware, Component
                 unset($this->modifierProviders[$index]);
                 $modifiers = $provider->getProvidedAttributeModifiers();
 
-                foreach ($modifiers as $attribute => $modifier) {
+                foreach ($modifiers as $entry) {
                     // Some attribute modifier providers will be providing
                     // negative modifiers, and it's entirely possible that the
                     // negative modifier was cleansed in some manner, so we'll
                     // silence exceptions for modifiers that don't currently exist.
                     try {
+                        [$attribute, $modifier] = $entry;
+
                         $this->unmodify($attribute, $modifier);
                     } catch (AttributeModifierNotFoundException) {
                     }
@@ -179,7 +170,8 @@ final class Attributes implements AttributeCollection, EntityAware, Component
                 unset($this->attributeProviders[$index]);
                 $attributes = $provider->getProvidedAttributes();
 
-                foreach (array_keys($attributes) as $attribute) {
+                foreach ($attributes as $entry) {
+                    [$attribute,] = $entry;
                     $this->remove($attribute);
                 }
             }
@@ -189,8 +181,8 @@ final class Attributes implements AttributeCollection, EntityAware, Component
     }
 
     /**
-     * @param string $attribute
-     * @param float  $value
+     * @param \Playground\Attributes\Contracts\Attribute $attribute
+     * @param float                                      $value
      *
      * @return static
      *
@@ -198,33 +190,34 @@ final class Attributes implements AttributeCollection, EntityAware, Component
      * @throws \Playground\Entities\Exceptions\EntityNotFound If no context is set
      */
     #[Override]
-    public function add(string $attribute, float $value): static
+    public function add(Attribute $attribute, float $value): static
     {
         if ($this->has($attribute)) {
             throw AttributeAlreadyExistsException::make($attribute, $this->getEntity());
         }
 
-        $realAttribute = $this->registry->getAttribute($attribute);
-
-        // This has to happen here because PhpStan will read the following checks
-        // and assume it's actually an instance of ContextAware OR Attribute, not both.
-        $this->attributes[$attribute] = $realAttribute;
+        // These have to happen here because PhpStan gets really confused at the
+        // concept of a class implementing more than one interface.
+        $this->attributes[$attribute->name()] = $attribute;
+        $this->values[$attribute->name()]     = $this->baseValues[$attribute->name()] = $value;
 
         // If the attribute should be aware of the context its in, we'll provide
         // it with the context available to this collection.
-        if ($realAttribute instanceof EntityAware) {
-            $realAttribute->setEntity($this->getEntity());
+        if ($attribute instanceof EntityAware) {
+            $attribute->setEntity($this->getEntity());
         }
 
         // Some attributes are aware of others
-        if ($realAttribute instanceof AttributeAware) {
-            $this->link($attribute, $realAttribute->awareOf());
+        if ($attribute instanceof AttributeAware) {
+            /**
+             * @psalm-suppress UnnecessaryVarAnnotation
+             * @var \Playground\Attributes\Contracts\Attribute&\Playground\Attributes\Contracts\AttributeAware $attribute
+             */
+            $this->link($attribute, $attribute->awareOf());
         }
 
-        $this->values[$attribute] = $this->baseValues[$attribute] = $value;
-
-        if ($realAttribute instanceof ModifiableAttribute) {
-            $this->modifiers[$attribute] = [];
+        if ($attribute instanceof ModifiableAttribute) {
+            $this->modifiers[$attribute->name()] = [];
         }
 
         /**
@@ -232,52 +225,35 @@ final class Attributes implements AttributeCollection, EntityAware, Component
          * doing eccentric ludicrous stuff.
          *
          * @psalm-suppress UnnecessaryVarAnnotation
-         * @var \Playground\Attributes\Contracts\Attribute $realAttribute
+         * @var \Playground\Attributes\Contracts\Attribute $attribute
+         * @noinspection   PhpRedundantVariableDocTypeInspection
          */
-        $this->fireEvent(new AttributeAdded($realAttribute));
+        $this->fireEvent(new AttributeAdded($attribute));
 
         return $this;
     }
 
     /**
-     * @param string $attribute
-     *
-     * @return \Playground\Attributes\Contracts\Attribute
-     *
-     * @throws \Playground\Attributes\Exceptions\AttributeNotFoundException If the attribute was not found
-     * @throws \Playground\Entities\Exceptions\EntityNotFound If no context is set
-     */
-    #[Override]
-    public function get(string $attribute): Attribute
-    {
-        if (! $this->has($attribute)) {
-            throw AttributeNotFoundException::make($attribute, $this->getEntity());
-        }
-
-        return $this->attributes[$attribute];
-    }
-
-    /**
-     * @param string $attribute
+     * @param \Playground\Attributes\Contracts\Attribute $attribute
      *
      * @return bool
      */
     #[Override]
-    public function has(string $attribute): bool
+    public function has(Attribute $attribute): bool
     {
-        return isset($this->attributes[$attribute]);
+        return isset($this->attributes[$attribute->name()]);
     }
 
     /**
-     * @param string        $attribute
-     * @param array<string> $attributes
+     * @param \Playground\Attributes\Contracts\Attribute        $attribute
+     * @param array<\Playground\Attributes\Contracts\Attribute> $attributes
      *
      * @return static
      *
      * @throws \Playground\Entities\Exceptions\EntityNotFound If no context is set
      */
     #[Override]
-    public function link(string $attribute, array $attributes): static
+    public function link(Attribute $attribute, array $attributes): static
     {
         if (! $this->has($attribute)) {
             throw AttributeNotFoundException::make($attribute, $this->getEntity());
@@ -288,15 +264,15 @@ final class Attributes implements AttributeCollection, EntityAware, Component
                 throw AttributeNotFoundException::make($linkedAttribute, $this->getEntity());
             }
 
-            $this->linked[$linkedAttribute][] = $attribute;
+            $this->linked[$linkedAttribute->name()][] = $attribute;
         }
 
         return $this;
     }
 
     /**
-     * @param string $attribute
-     * @param string $modifier
+     * @param \Playground\Attributes\Contracts\Attribute         $attribute
+     * @param \Playground\Attributes\Contracts\AttributeModifier $modifier
      *
      * @return bool
      *
@@ -306,20 +282,18 @@ final class Attributes implements AttributeCollection, EntityAware, Component
      * @throws \Playground\Entities\Exceptions\EntityNotFound If no context is set
      */
     #[Override]
-    public function modified(string $attribute, string $modifier): bool
+    public function modified(Attribute $attribute, AttributeModifier $modifier): bool
     {
-        $realAttribute = $this->get($attribute);
-
-        if (! ($realAttribute instanceof ModifiableAttribute)) {
+        if (! ($attribute instanceof ModifiableAttribute)) {
             throw AttributeDoesNotSupportModifiersException::make($attribute, $this->getEntity());
         }
 
-        return isset($this->modifiers[$attribute][$modifier]);
+        return isset($this->modifiers[$attribute->name()][$modifier->name()]);
     }
 
     /**
-     * @param string $attribute
-     * @param string $modifier
+     * @param \Playground\Attributes\Contracts\Attribute         $attribute
+     * @param \Playground\Attributes\Contracts\AttributeModifier $modifier
      *
      * @return float
      *
@@ -329,23 +303,19 @@ final class Attributes implements AttributeCollection, EntityAware, Component
      * @throws \Playground\Entities\Exceptions\EntityNotFound If no context is set
      */
     #[Override]
-    public function modify(string $attribute, string $modifier): float
+    public function modify(Attribute $attribute, AttributeModifier $modifier): float
     {
-        $realAttribute = $this->get($attribute);
-
-        if (! ($realAttribute instanceof ModifiableAttribute)) {
+        if (! ($attribute instanceof ModifiableAttribute)) {
             throw AttributeDoesNotSupportModifiersException::make($attribute, $this->getEntity());
         }
 
         if ($this->modified($attribute, $modifier)) {
-            throw AttributeModifierAlreadyExistsException::make($attribute, $modifier, $this->getEntity());
+            throw AttributeModifierAlreadyExistsException::make($modifier, $attribute, $this->getEntity());
         }
 
-        $realModifier = $this->registry->getModifier($modifier);
+        $this->modifiers[$attribute->name()][$modifier->name()] = $modifier;
 
-        $this->modifiers[$attribute][$modifier] = $realModifier;
-
-        $this->fireEvent(new AttributeModified($realAttribute, $realModifier));
+        $this->fireEvent(new AttributeModified($attribute, $modifier));
 
         $this->recalculate($attribute);
 
@@ -353,26 +323,24 @@ final class Attributes implements AttributeCollection, EntityAware, Component
     }
 
     /**
-     * @param string $attribute
+     * @param \Playground\Attributes\Contracts\Attribute $attribute
      *
      * @return void
      *
      * @throws \Playground\Entities\Exceptions\EntityNotFound If no context is set
-     * @throws \Playground\Attributes\Exceptions\AttributeRecursion If an attribute recalculation is recursive
      */
-    private function recalculate(string $attribute): void
+    private function recalculate(Attribute $attribute): void
     {
-        $realAttribute = $this->get($attribute);
-        $value         = $base = $this->baseValues[$attribute];
+        $value = $base = $this->baseValues[$attribute->name()];
 
-        if (in_array($attribute, $this->recalculating, true)) {
+        if (in_array($attribute->name(), $this->recalculating, true)) {
             throw AttributeRecursion::make($attribute, $this->getEntity());
         }
 
-        $this->recalculating[] = $attribute;
+        $this->recalculating[] = $attribute->name();
 
-        if ($realAttribute instanceof ModifiableAttribute) {
-            $modifiers     = $this->modifiers[$attribute];
+        if ($attribute instanceof ModifiableAttribute) {
+            $modifiers     = $this->modifiers[$attribute->name()];
             $baseModifiers = $runningModifiers = [];
 
             foreach ($modifiers as $modifier) {
@@ -398,9 +366,9 @@ final class Attributes implements AttributeCollection, EntityAware, Component
             }
         }
 
-        if ($realAttribute instanceof CappedAttribute) {
-            $min = $realAttribute->minValue();
-            $max = $realAttribute->maxValue();
+        if ($attribute instanceof CappedAttribute) {
+            $min = $attribute->minValue();
+            $max = $attribute->maxValue();
 
             if ($min !== null) {
                 $value = max($min, $value);
@@ -411,7 +379,7 @@ final class Attributes implements AttributeCollection, EntityAware, Component
             }
         }
 
-        $this->fireEvent(new AttributeRecalculated($realAttribute));
+        $this->fireEvent(new AttributeRecalculated($attribute));
 
         $this->set($attribute, $value);
 
@@ -432,7 +400,8 @@ final class Attributes implements AttributeCollection, EntityAware, Component
             $this->attributeProviders[] = $provider;
             $attributes                 = $provider->getProvidedAttributes();
 
-            foreach ($attributes as $attribute => $value) {
+            foreach ($attributes as $entry) {
+                [$attribute, $value] = $entry;
                 $this->add($attribute, $value);
             }
         }
@@ -441,7 +410,8 @@ final class Attributes implements AttributeCollection, EntityAware, Component
             $this->modifierProviders[] = $provider;
             $modifiers                 = $provider->getProvidedAttributeModifiers();
 
-            foreach ($modifiers as $attribute => $modifier) {
+            foreach ($modifiers as $entry) {
+                [$attribute, $modifier] = $entry;
                 $this->modify($attribute, $modifier);
             }
         }
@@ -450,7 +420,7 @@ final class Attributes implements AttributeCollection, EntityAware, Component
     }
 
     /**
-     * @param string $attribute
+     * @param \Playground\Attributes\Contracts\Attribute $attribute
      *
      * @return \Playground\Attributes\Contracts\Attribute
      *
@@ -458,17 +428,24 @@ final class Attributes implements AttributeCollection, EntityAware, Component
      * @throws \Playground\Entities\Exceptions\EntityNotFound If no context is found
      */
     #[Override]
-    public function remove(string $attribute): Attribute
+    public function remove(Attribute $attribute): Attribute
     {
-        $realAttribute = $this->get($attribute);
+        if (! $this->has($attribute)) {
+            throw AttributeNotFoundException::make($attribute, $this->getEntity());
+        }
 
-        unset($this->attributes[$attribute], $this->values[$attribute], $this->modifiers[$attribute]);
+        unset(
+            $this->attributes[$attribute->name()],
+            $this->values[$attribute->name()],
+            $this->modifiers[$attribute->name()],
+            $this->linked[$attribute->name()]
+        );
 
-        return $realAttribute;
+        return $attribute;
     }
 
     /**
-     * @param string $attribute
+     * @param \Playground\Attributes\Contracts\Attribute $attribute
      *
      * @return float
      *
@@ -477,24 +454,22 @@ final class Attributes implements AttributeCollection, EntityAware, Component
      * @throws \Playground\Entities\Exceptions\EntityNotFound If no context is found
      */
     #[Override]
-    public function reset(string $attribute): float
+    public function reset(Attribute $attribute): float
     {
-        $realAttribute = $this->get($attribute);
-
-        if (! ($realAttribute instanceof ModifiableAttribute)) {
+        if (! ($attribute instanceof ModifiableAttribute)) {
             throw AttributeDoesNotSupportModifiersException::make($attribute, $this->getEntity());
         }
 
-        $this->modifiers[$attribute] = [];
+        $this->modifiers[$attribute->name()] = [];
 
-        $this->set($attribute, $this->baseValues[$attribute], true);
+        $this->set($attribute, $this->baseValues[$attribute->name()], true);
 
         return $this->value($attribute);
     }
 
     /**
-     * @param string $attribute
-     * @param float  $value
+     * @param \Playground\Attributes\Contracts\Attribute $attribute
+     * @param float                                      $value
      *
      * @return static
      *
@@ -502,22 +477,22 @@ final class Attributes implements AttributeCollection, EntityAware, Component
      * @throws \Playground\Entities\Exceptions\EntityNotFound If no context is found
      */
     #[Override]
-    public function set(string $attribute, float $value, bool $resetting = false): static
+    public function set(Attribute $attribute, float $value, bool $resetting = false): static
     {
         if ($this->has($attribute)) {
             throw AttributeNotFoundException::make($attribute, $this->getEntity());
         }
 
-        $original                 = $this->values[$attribute];
-        $this->values[$attribute] = $this->baseValues[$attribute] = $value;
+        $original                         = $this->values[$attribute->name()];
+        $this->values[$attribute->name()] = $this->baseValues[$attribute->name()] = $value;
 
         // It's possible for an attribute to be set to its previous value, in
         // which case we don't want to update linked attributes, because it
         // won't change anything.
         if ($original !== $value) {
-            $this->fireEvent(new AttributeValueChanged($this->get($attribute), $original, $value, $resetting));
+            $this->fireEvent(new AttributeValueChanged($attribute, $original, $value, $resetting));
 
-            $linked = $this->linked[$attribute] ?? [];
+            $linked = $this->linked[$attribute->name()] ?? [];
 
             if (! empty($linked)) {
                 foreach ($linked as $linkedAttribute) {
@@ -530,8 +505,8 @@ final class Attributes implements AttributeCollection, EntityAware, Component
     }
 
     /**
-     * @param string $attribute
-     * @param string $modifier
+     * @param \Playground\Attributes\Contracts\Attribute         $attribute
+     * @param \Playground\Attributes\Contracts\AttributeModifier $modifier
      *
      * @return float
      *
@@ -541,17 +516,15 @@ final class Attributes implements AttributeCollection, EntityAware, Component
      * @throws \Playground\Entities\Exceptions\EntityNotFound If no context is found
      */
     #[Override]
-    public function unmodify(string $attribute, string $modifier): float
+    public function unmodify(Attribute $attribute, AttributeModifier $modifier): float
     {
         if (! $this->modified($attribute, $modifier)) {
-            throw AttributeModifierNotFoundException::make($attribute, $modifier, $this->getEntity());
+            throw AttributeModifierNotFoundException::make($modifier, $attribute, $this->getEntity());
         }
 
-        $realModifier = $this->modifiers[$attribute][$modifier];
+        unset($this->modifiers[$attribute->name()][$modifier->name()]);
 
-        unset($this->modifiers[$attribute][$modifier]);
-
-        $this->fireEvent(new AttributeUnmodified($this->get($attribute), $realModifier));
+        $this->fireEvent(new AttributeUnmodified($attribute, $modifier));
 
         $this->recalculate($attribute);
 
@@ -559,7 +532,7 @@ final class Attributes implements AttributeCollection, EntityAware, Component
     }
 
     /**
-     * @param string $attribute
+     * @param \Playground\Attributes\Contracts\Attribute $attribute
      *
      * @return float
      *
@@ -567,13 +540,13 @@ final class Attributes implements AttributeCollection, EntityAware, Component
      * @throws \Playground\Entities\Exceptions\EntityNotFound If no context is found
      */
     #[Override]
-    public function value(string $attribute): float
+    public function value(Attribute $attribute): float
     {
         if (! $this->has($attribute)) {
             throw AttributeNotFoundException::make($attribute, $this->getEntity());
         }
 
-        return $this->values[$attribute];
+        return $this->values[$attribute->name()];
     }
 
     /**
