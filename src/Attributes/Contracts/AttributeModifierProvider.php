@@ -19,7 +19,7 @@ interface AttributeModifierProvider
     /**
      * Get the provided attribute modifiers
      *
-     * @return array<string, string>|string[]
+     * @return array<string, string>
      */
     public function getProvidedAttributeModifiers(): array;
 }
