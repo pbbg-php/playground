@@ -1,2 +1,6 @@
 /vendor
 /wiki
+/cache
+/build
+/docs
+doctum.phar
