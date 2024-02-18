@@ -1,18 +1,18 @@
 <?php
 declare(strict_types=1);
 
-namespace Playground\Utility;
+namespace Playground\Core;
 
 use Override;
-use Playground\Utility\Contracts\Registry;
-use Playground\Utility\Exceptions\RegistryInstanceAlreadyRegisteredException;
-use Playground\Utility\Exceptions\RegistryInstanceInvalidException;
-use Playground\Utility\Exceptions\RegistryInstanceNotFoundException;
+use Playground\Core\Contracts\Registry;
+use Playground\Core\Exceptions\RegistryInstanceAlreadyRegisteredException;
+use Playground\Core\Exceptions\RegistryInstanceInvalidException;
+use Playground\Core\Exceptions\RegistryInstanceNotFoundException;
 
 /**
  * @template RClass of object
  *
- * @implements \Playground\Utility\Contracts\Registry<RClass>
+ * @implements \Playground\Core\Contracts\Registry<RClass>
  */
 abstract class BaseRegistry implements Registry
 {
@@ -43,8 +43,8 @@ abstract class BaseRegistry implements Registry
      * @psalm-param RClass   $object
      * @phpstan-param RClass $object
      *
-     * @throws \Playground\Utility\Exceptions\RegistryInstanceAlreadyRegisteredException
-     * @throws \Playground\Utility\Exceptions\RegistryInstanceInvalidException
+     * @throws \Playground\Core\Exceptions\RegistryInstanceAlreadyRegisteredException
+     * @throws \Playground\Core\Exceptions\RegistryInstanceInvalidException
      */
     #[Override]
     public function register(object $object): static
@@ -83,7 +83,7 @@ abstract class BaseRegistry implements Registry
      * @psalm-return RClass
      * @phpstan-return RClass
      *
-     * @throws \Playground\Utility\Exceptions\RegistryInstanceNotFoundException
+     * @throws \Playground\Core\Exceptions\RegistryInstanceNotFoundException
      */
     #[Override]
     public function get(string $name): object

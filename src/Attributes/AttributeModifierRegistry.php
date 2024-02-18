@@ -6,12 +6,12 @@ namespace Playground\Attributes;
 
 use Override;
 use Playground\Attributes\Contracts\AttributeModifier;
-use Playground\Utility\BaseRegistry;
+use Playground\Core\BaseRegistry;
 
 /**
  * Attribute Modifier Registry
  *
- * @extends \Playground\Utility\BaseRegistry<\Playground\Attributes\Contracts\AttributeModifier>
+ * @extends \Playground\Core\BaseRegistry<\Playground\Attributes\Contracts\AttributeModifier>
  */
 final class AttributeModifierRegistry extends BaseRegistry
 {

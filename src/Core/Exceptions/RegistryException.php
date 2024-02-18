@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Playground\Utility\Exceptions;
+namespace Playground\Core\Exceptions;
 
 use Exception;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Playground\Utility\Contracts;
+namespace Playground\Core\Contracts;
 
 /**
  * Registry Contract
@@ -29,7 +29,7 @@ interface Registry
      * @psalm-param RClass   $object
      * @phpstan-param RClass $object
      *
-     * @throws \Playground\Utility\Exceptions\RegistryInstanceAlreadyRegisteredException If the object is already registered
+     * @throws \Playground\Core\Exceptions\RegistryInstanceAlreadyRegisteredException If the object is already registered
      */
     public function register(object $object): static;
 
@@ -49,7 +49,7 @@ interface Registry
      *
      * @return object
      *
-     * @throws \Playground\Utility\Exceptions\RegistryInstanceNotFoundException If nothing is registered for that name
+     * @throws \Playground\Core\Exceptions\RegistryInstanceNotFoundException If nothing is registered for that name
      */
     public function get(string $name): object;
 }

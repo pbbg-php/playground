@@ -6,12 +6,12 @@ namespace Playground\Attributes;
 
 use Override;
 use Playground\Attributes\Contracts\Attribute;
-use Playground\Utility\BaseRegistry;
+use Playground\Core\BaseRegistry;
 
 /**
  * Attribute Registry
  *
- * @extends \Playground\Utility\BaseRegistry<\Playground\Attributes\Contracts\Attribute>
+ * @extends \Playground\Core\BaseRegistry<\Playground\Attributes\Contracts\Attribute>
  */
 final class AttributeRegistry extends BaseRegistry
 {

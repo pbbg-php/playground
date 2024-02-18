@@ -4,13 +4,13 @@ declare(strict_types=1);
 namespace Playground\Resources;
 
 use Override;
+use Playground\Core\BaseRegistry;
 use Playground\Resources\Contracts\Resource;
-use Playground\Utility\BaseRegistry;
 
 /**
  * Resource Registry
  *
- * @extends \Playground\Utility\BaseRegistry<\Playground\Resources\Contracts\Resource>
+ * @extends \Playground\Core\BaseRegistry<\Playground\Resources\Contracts\Resource>
  */
 final class ResourceRegistry extends BaseRegistry
 {
